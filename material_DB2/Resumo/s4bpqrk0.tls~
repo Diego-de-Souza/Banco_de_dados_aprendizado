@@ -1,0 +1,59 @@
+--Para uma revisão (usando banco Funcionarios)
+use funcionarios
+
+select * from funcionarios
+select * from setores
+
+--1) Listar o nome do funcionario e o nome do setor onde trabalha
+
+--todos os funcionarios
+select func_nome, s.setor_nome from funcionarios f
+left join setores s on f.setor_id = s.setor_id
+
+--só quem tem setor
+select func_nome, s.setor_nome from funcionarios f
+left join setores s on f.setor_id = s.setor_id
+where f.setor_id is not null
+--Gu: (ou)
+select func_nome, s.setor_nome from funcionarios f
+inner join setores s on f.setor_id = s.setor_id
+
+--2) Listar a quantidade de funcionarios para cada setor
+select f.setor_id, count(*) qtdfunc_setor from funcionarios f
+group by f.setor_id
+
+
+--3) Listar todos os setores com sua qtd de funcionarios alocados a ele
+
+--somente dos setores que possuem funcionarios
+select f.setor_id, count(*) qtdfunc_setor from funcionarios f
+where f.setor_id is not null
+group by f.setor_id
+
+--com inner
+select s.setor_nome, count(*) qtdfunc_setor from setores s
+inner join funcionarios f on s.setor_id = f.setor_id
+group by s.setor_nome
+
+
+--com having
+select s.setor_nome, count(*) qtdfunc_setor from setores s
+inner join funcionarios f on s.setor_id = f.setor_id
+group by s.setor_nome
+having count(*) > 0
+
+
+--4) listar todos os funcionarios que trabalham no setor que possui a letra 'o'
+select func_nome from funcionarios f
+where func_nome like '%o%'
+
+
+
+
+
+
+
+
+
+
+
