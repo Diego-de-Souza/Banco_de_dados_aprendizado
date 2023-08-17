@@ -16,11 +16,20 @@ from Employees e
 select p.ProductName, od.OrderID, od.Quantity
 from Products p
 inner join [Order Details] od on p.ProductID = od.ProductID
+order by ProductName
 
 select od.OrderID, od.Quantity,
 	(select p.ProductName from Products p
 	where p.ProductID = od.ProductID)
 from [Order Details] od
+
+--correção com o professor
+select od.OrderID, od.Quantity,
+	(select p.ProductName 
+	from Products p
+	where p.ProductID = od.ProductID) ProductName
+from [Order Details] od
+order by ProductName
 
 GO
 
@@ -34,7 +43,9 @@ select s.ContactName ,
 	(select count(p.ProductID) from Products p
 	where s.SupplierID = p.SupplierID) qtd
 from Suppliers s
-group by s.ContactName,s.SupplierID
+order by s.ContactName
+
+
 
 --4)
 select s.ContactName, count(p.ProductID) qtd
@@ -49,7 +60,7 @@ select s.ContactName ,
 from Suppliers s
 	where (select count(*) from Products p
 		where s.SupplierID = p.SupplierID) > 2
-
+order by s.ContactName
 
 
 --escreva os comandos para trazer os seguintes dados, escreva
