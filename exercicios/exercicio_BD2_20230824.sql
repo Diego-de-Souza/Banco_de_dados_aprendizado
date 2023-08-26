@@ -24,7 +24,7 @@ numero de locações
 
 --1)
 create or alter view vw_nuncaLocados as
-	select m.DescMidia, il.CodMidia, g.descricao
+	select m.DescMidia, il.CodMidia, g.Codgenero
 	from Midias m
 	left join ItensLocacao il on m.CodMidia = il.CodMidia
 	left join Genero g on g.Codgenero = m.codGenero
@@ -68,12 +68,28 @@ select * from vw_top5
 
 --4)
 create or alter view vw_locacaoTop as
-	select distinct top 5 m.DescMidia, m.CodMidia, COUNT(*)qtd
-	from Midias m
-	inner join ItensLocacao itl on m.CodMidia = itl.CodMidia
-	group by m.DescMidia, m.CodMidia
-	order by qtd desc
+	select Distinct c.Cliente
+	from  Cliente c
+	inner join Locacao l on l.CodCli = c.CodCli
+	inner join ItensLocacao itl on itl.CodLocacao = l.CodLocacao
+	inner join vw_top5 vw on vw.CodMidia = itl.CodMidia
 
 select * from vw_locacaoTop
 
 --5)
+create or alter view vw_genero as
+	select distinct g.* 
+	from vw_nuncaLocados vw
+	inner join Genero g on g.Codgenero = vw.Codgenero
+
+select * from vw_genero
+
+--6)
+create or alter view vw_CLienteTop as
+	select top 5 c.Cliente, c.CodCli
+	from Cliente c
+	inner join Locacao l on l.CodCli = c.CodCli
+	group by c.Cliente, c.CodCli
+	order by COUNT(*) desc
+
+select * from vw_CLienteTop
