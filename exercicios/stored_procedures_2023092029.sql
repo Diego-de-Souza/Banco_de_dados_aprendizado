@@ -1,7 +1,7 @@
 /*
 Exercicios de treinamento de store procedure
 */
-
+use Veiculos
 --1)Utilizando o banco de veículos, crie uma stored procedure 
 --chamada sp_ex_1 que receba como parâmetro um código de UF qualquer, 
 --e devolva em uma tabela a média dos rendimentos das pessoas agrupadas por estado civil desta UF.
