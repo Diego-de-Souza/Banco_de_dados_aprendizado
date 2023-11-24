@@ -1,0 +1,168 @@
+/*
+1) Utilizando o banco de veículos, crie um procedimento armazenado
+chamada sp_ex_1 que recebe como par�metro um c�digo de UF
+qualquer, e devolve em uma tabela am�dia dos rendimentos
+das pessoas agrupadas pelo estado civil desta UF.
+*/
+altere o procedimento sp_ex_1 (@uf varchar(2)) como
+começar
+	selecione a.cod_estado_civil, avg(a.rendimento) render
+	de tb_clientes a
+	onde a.cod_uf = @uf
+	agrupar por a.cod_estado_civil
+fim
+
+--chamada
+executivo sp_ex_1 'SP'
+
+/*
+2) Crie um SP que permita a inclusão dos dados para uma
+marca, na tabela de marcas. Receba como par�metros todos os
+dados da tabela.
+*/
+altere o procedimento sp_ex_2 (@cod_marca int, @desc_marca varchar(50)) como
+começar	
+	ativar nocount
+	inserir nos valores tb_marcas (@cod_marca, @desc_marca)
+	se @@ERRO > 0
+		return -1 --deu problema
+	outro
+		return 0 -- tudo OK
+	desativar nocount
+fim
+
+--chamada
+declare @ret int
+exec @ret = sp_ex_2 92, 'KIA Motors'
+se @ret = 0
+	print 'Inclusão OK'
+outro
+	print 'Erro na inclusão'
+
+
+/*
+3) Baseada na sp criada no exercício 2, fa�a uma alteração
+para que o código da marca seja gerado automaticamente dentro
+de sua SP
+*/
+altere o procedimento sp_ex_3 (@desc_marca varchar(50)) como
+começar	
+	--descobre qual o próximo código da marca
+	declare @cod_marca int = (selecione isnull(max(cod_marca), 0) + 1
+							  de tb_marcas)
+
+	ativar nocount
+	inserir nos valores tb_marcas (@cod_marca, @desc_marca)
+	se @@ERRO > 0
+		return -1 --deu problema
+	outro
+		return 0 -- tudo OK
+	desativar nocount
+fim
+
+--chamada
+declare @ret int
+exec @ret = sp_ex_3 'Lexus'
+se @ret = 0
+	print 'Inclusão OK'
+outro
+	print 'Erro na inclusão'
+
+/*
+4) Crie um sp que receba como par�metro a marca de um veículo,
+e devolve, também através de parâmetros a quantidade de veículos
+que essa marca possui, bem como a quantidade distinta de UF que
+os veículos dessa marca possuem.
+*/
+alterar processo sp_ex_04
+(
+    @marca nvarchar(50),
+    @qtdeVeiculos int out,
+    @qtdeUfs int out
+) como
+começar
+    declare @codMarca int = (selecione m.cod_marca
+						     de tb_marcas m
+							 onde m.desc_marca=@marca)
+
+    se @codMarca for nulo
+    começar
+        set @qtdeVeiculos = 0
+        definir @qtdeUfs = 0
+		print 'Marca solicitada não existe!!!'
+        retornar
+    fim
+
+    set @qtdeVeiculos = (selecione contagem(*) de tb_alienacao a
+						 onde a.cod_marca=@codMarca)
+
+    set @qtdeUfs = (selecione contagem (distinto a.cod_uf_placa)
+					de tb_alienacao a
+					onde a.cod_marca=@codMarca)
+	--ou
+	selecione @qtdeUfs = contagem (distinto a.cod_uf_placa),
+		   @qtdeVeiculos = contagem(*)
+					de tb_alienacao a
+					onde a.cod_marca=@codMarca
+	retornar
+fim
+vá --executa em� aqui
+
+--chamada
+declare @qtdVeic int
+declare @qtdUF int
+
+exec sp_ex_04 'VOLKSWAGEN', saída @qtdVeic, saída @qtdUF
+
+print 'Total de Veículos da Marca: ' + cast(@qtdVeic as varchar(5))
+print 'Total de UFs da Marca: ' + cast(@qtdUF as varchar(5))
+
+/*
+5) Crie um SP de inclusão para a tabela de clientes, nela você
+ter� que receber todos os dados do cliente. Para que a inclusão
+possa ocorrer você deve verificar se os dados de estado civil
+e UF existem tabelas fortes de estado civil e UF. Caso algum
+problema ocorre uma mensagem deve ser emitida e a operação
+abortado.
+*/
+
+selecione * em tb_clientes
+alterar procedimento sp_ex_5 (@cod_cli int, @nome varchar(50),
+						  @dt_nascimento smalldatetime,
+						  @tipo_pessoa varchar(1),
+						  @cod_estado_civil varchar(1),
+						  @rendimento decimal(10,2),
+						  @cod_uf varchar(2)) como
+começar
+	se não existir (selecione cod_uf em tb_estados
+				   onde @cod_uf = cod_uf) começa
+		print 'Codigo da UF não existe'
+		retornar -1
+	fim
+
+	se não existir (selecione cod_estado_civil de tb_estado_civil
+				   onde @cod_estado_civil = cod_estado_civil) começa
+		imprimir 'Código do Estado Civil não existe'
+		retornar -1
+	fim
+
+	inserir nos valores tb_clientes (@cod_cli, @nome, @dt_nascimento,
+									@tipo_pessoa, @cod_estado_civil,
+									@rendimento, @cod_uf)
+    print 'Cliente incluído com sucesso!!!'
+	return 0 --sem erros
+fim
+ir
+
+--chamada
+definir formato de data dmy
+exec sp_ex_5 20124, 'André da Silva', '12/10/1990',
+					'J', 'C', 1500, 'RJ'
+--ou
+
+selecione * em tb_estado_civil
+exec sp_ex_5 @cod_cli = 20125, @nome='André da Silva',
+		    @dt_nascimento = '12/10/1990', @tipo_pessoa = 'F',
+			@cod_estado_civil = 'C', @rendimento = 1500, @cod_uf='SP'
+
+selecione * em tb_estado_civil
